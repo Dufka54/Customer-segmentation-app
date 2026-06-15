@@ -316,20 +316,28 @@ with tab3:
         st.markdown("---")
         st.subheader("Multi-Dimensional Persona DNA (Radar Chart)")
         
-        radar_cols = ['Age', 'Annual Income (k$)', 'Spending Score (1-100)', 'Gender_Encoded']
+        radar_cols = [col for col in scaled_cols if col in df_scaled.columns and col != 'Cluster']
         radar_data = df_scaled.groupby('Cluster')[radar_cols].mean().reset_index()
         
         fig_radar = go.Figure()
+
+        display_categories = []
+        for col in radar_cols:
+            name = col.replace('_', ' ').replace(' (k$)', '').replace(' (1-100)', '')
+            if name == 'Gender Encoded':
+                name = 'Gender (Females Ratio)'
+            display_categories.append(name)
+
+        radar_categories_closed = display_categories + [display_categories[0]]
         
         for index, row in radar_data.iterrows():
             cluster_id = int(row['Cluster'])
-            r_values = [row['Age'], row['Annual Income (k$)'], row['Spending Score (1-100)'], row['Gender_Encoded']]
-            r_values.append(r_values[0])
-            categories = ['Age Index', 'Income Index', 'Spending Score Index', 'Gender (Females Ratio)', 'Age Index']
+            r_values = [row[col] for col in radar_cols]
+            r_values_closed = r_values + [r_values[0]]
             
             fig_radar.add_trace(go.Scatterpolar(
                 r=r_values,
-                theta=categories,
+                theta=radar_categories_closed,
                 fill='toself',
                 name=f'Cluster {cluster_id}'
             ))
